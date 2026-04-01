@@ -7,8 +7,8 @@ const swaggerPlugin = async (fastify) => {
     await fastify.register(fastifySwagger, {
       openapi: {
         info: {
-          title: 'Microservice Template',
-          description: 'This is a microservice template for Node.js with TypeScript and Fastify.',
+          title: 'EV Charging Session Service',
+          description: 'REST API to manage EV charging sessions',
           version: '1.0.0',
         },
       },

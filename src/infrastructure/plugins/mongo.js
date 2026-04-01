@@ -1,10 +1,6 @@
 import fp from 'fastify-plugin';
 import { MongoClient } from 'mongodb';
 
-/**
- * Single-host mongodb://127.0.0.1:27017 against a replica set in Docker: the server
- * may advertise an internal hostname (container id). directConnection avoids that.
- */
 function isLocalSingleHost(uri) {
   const match = uri.match(/^mongodb:\/\/([^/?]+)/i);
   if (!match) return false;

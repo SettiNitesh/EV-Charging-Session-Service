@@ -1,0 +1,84 @@
+{
+  "info": {
+    "_postman_id": "522d2e7a-8b53-4573-b328-4663f8c8f4af",
+    "name": "EV-CHARGING",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "26919153",
+    "_collection_link": "https://go.postman.co/collection/26919153-522d2e7a-8b53-4573-b328-4663f8c8f4af?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "POST SESSION",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "start-1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"userId\": \"u1\",\n    \"stationId\": \"s1\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{service-url}}/api/v1/session",
+          "host": ["{{service-url}}"],
+          "path": ["api", "v1", "session"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "PATCH SESSION",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:4444/api/v1/session/{{session_id}}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "4444",
+          "path": ["api", "v1", "session", "{{session_id}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "STOP SESSION",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{service-url}}}/api/v1/session/{{session_id}}/stop",
+          "host": ["{{service-url}}}"],
+          "path": ["api", "v1", "session", "{{session_id}}", "stop"]
+        }
+      },
+      "response": []
+    }
+  ]
+}

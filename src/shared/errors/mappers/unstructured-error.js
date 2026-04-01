@@ -1,4 +1,4 @@
-import CustomError from "../custom-error.js";
+import CustomError from '../custom-error.js';
 
 const unstructuredError = (error) => {
   if (error.fieldName && (error.message || error.detail)) {
@@ -6,7 +6,7 @@ const unstructuredError = (error) => {
       httpCode: error.code || 400,
       message: error.message || error.detail,
       property: error.fieldName,
-      httpStatusCode: "UNSTRUCTURED_ERROR",
+      httpStatusCode: 'UNSTRUCTURED_ERROR',
     });
   }
   return null;

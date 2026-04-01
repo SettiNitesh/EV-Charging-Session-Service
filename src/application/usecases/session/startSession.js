@@ -1,40 +1,64 @@
-import { randomUUID } from "node:crypto";
-
-import { sessionEntity } from "../../../domain/entities/session.entity.js";
+import { randomUUID } from 'node:crypto';
+import { sessionEntity } from '../../../domain/entities/session.entity.js';
 import {
   IdempotencyRepository,
   SessionRepository,
-} from "../../../infrastructure/repositories/index.js";
+} from '../../../infrastructure/repositories/index.js';
+
+const findExistingIdempotency = ({ findOne, mongo, idempotencyKey, type }) =>
+  findOne.call(mongo, { filters: { idempotencyKey, ...(type && { type }) } });
+
+const saveIdempotencyRecord = ({ insertOne, mongo, idempotencyKey, type, response }) =>
+  insertOne.call(mongo, {
+    data: { idempotencyKey, type, response, createdAt: new Date() },
+  });
 
 const startSessionUsecase = (fastify) => {
-  const { insertOne } = SessionRepository(fastify);
-  const { insertOne: saveIdempotency, findOne: findIdempotency } =
-    IdempotencyRepository(fastify);
+  const { insertOne: insertSession } = SessionRepository(fastify);
+  const { insertOne: saveIdempotency, findOne: findIdempotency } = IdempotencyRepository(fastify);
 
   return async ({ data, idempotencyKey }) => {
+    // 1. Check idempotency — return early if request was already processed
     if (idempotencyKey) {
-      const existing = await findIdempotency.call(fastify.mongo, {
-        filters: { idempotencyKey },
+      const existing = await findExistingIdempotency({
+        findOne: findIdempotency,
+        mongo: fastify.mongo,
+        idempotencyKey,
       });
-
-      if (existing?.session) return existing.session;
+      if (existing?.response) return existing.response;
     }
 
+    // 2. Create and persist the new session
     const session = sessionEntity({
       id: randomUUID(),
       userId: data.userId,
       stationId: data.stationId,
     });
 
-    await insertOne.call(fastify.mongo, { data: session });
+    await insertSession.call(fastify.mongo, { data: session });
 
+    // 3. Persist idempotency record (safe — handles duplicate key race condition)
     if (idempotencyKey) {
-      await saveIdempotency.call(fastify.mongo, {
-        data: {
+      try {
+        await saveIdempotencyRecord({
+          insertOne: saveIdempotency,
+          mongo: fastify.mongo,
           idempotencyKey,
-          session,
-        },
-      });
+          type: 'START',
+          response: session,
+        });
+      } catch (error) {
+        if (error.code === 11000) {
+          const existing = await findExistingIdempotency({
+            findOne: findIdempotency,
+            mongo: fastify.mongo,
+            idempotencyKey,
+            type: 'START',
+          });
+          return existing.response;
+        }
+        throw error;
+      }
     }
 
     return session;

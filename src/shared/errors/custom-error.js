@@ -1,6 +1,6 @@
-import { STATUS_CODES } from "http";
+import { STATUS_CODES } from 'http';
 
-import { STATUS_TEXTS } from "./constants.js";
+import { STATUS_TEXTS } from './constants.js';
 
 class CustomError extends Error {
   constructor(httpCode, errors) {
@@ -28,14 +28,7 @@ class CustomError extends Error {
     return { errors: this._errors };
   }
 
-  static create({
-    httpCode,
-    message,
-    property,
-    httpStatusCode,
-    description,
-    name,
-  }) {
+  static create({ httpCode, message, property, httpStatusCode, description, name }) {
     const parseData = {
       httpCode,
       message,
@@ -48,14 +41,7 @@ class CustomError extends Error {
     return new CustomError(httpCode, errors);
   }
 
-  static parse({
-    name,
-    httpCode,
-    message,
-    property,
-    httpStatusCode,
-    description,
-  }) {
+  static parse({ name, httpCode, message, property, httpStatusCode, description }) {
     return {
       httpCode,
       message,
@@ -67,7 +53,7 @@ class CustomError extends Error {
   }
 
   static createHttpError({ httpCode, errorResponse }) {
-    return new CustomError(httpCode, errors);
+    return new CustomError(httpCode, errorResponse);
   }
 }
 

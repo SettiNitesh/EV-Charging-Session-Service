@@ -1,5 +1,5 @@
-import { StatusCodes } from "http-status-codes";
-import { updateSessionUsecase } from "../../../application/usecases/session/index.js";
+import { StatusCodes } from 'http-status-codes';
+import { updateSessionUsecase } from '../../../application/usecases/session/index.js';
 
 const patchSessionController = (fastify) => {
   return async (request, reply) => {

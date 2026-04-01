@@ -1,3 +1,3 @@
-import sessionRoutes from "./session-routes.js";
+import sessionRoutes from './session-routes.js';
 
 export default { sessionRoutes };

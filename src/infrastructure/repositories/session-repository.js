@@ -1,4 +1,4 @@
-import { logQuery } from "../../shared/utils/helpers.js";
+import { logQuery } from '../../shared/utils/helpers.js';
 
 const SessionRepository = function (fastify) {
   const insertOne = async function ({ data }) {
@@ -6,10 +6,10 @@ const SessionRepository = function (fastify) {
 
     logQuery({
       logger: fastify.log,
-      collection: "sessions",
-      operation: "insertOne",
+      collection: 'sessions',
+      operation: 'insertOne',
       filter: data,
-      context: "Create Session",
+      context: 'Create Session',
     });
 
     await mongo.sessions.insertOne(data);
@@ -22,10 +22,10 @@ const SessionRepository = function (fastify) {
 
     logQuery({
       logger: fastify.log,
-      collection: "sessions",
-      operation: "findOne",
+      collection: 'sessions',
+      operation: 'findOne',
       filter: filters,
-      context: "Find By Session",
+      context: 'Find By Session',
     });
 
     return mongo.sessions.findOne(filters, { session });
@@ -36,10 +36,10 @@ const SessionRepository = function (fastify) {
 
     logQuery({
       logger: fastify.log,
-      collection: "sessions",
-      operation: "updateOne",
+      collection: 'sessions',
+      operation: 'updateOne',
       filter: filters,
-      context: "Update Session",
+      context: 'Update Session',
     });
 
     const result = await mongo.sessions.updateOne(filters, update, options);
@@ -47,26 +47,18 @@ const SessionRepository = function (fastify) {
     return result;
   };
 
-  const findOneAndUpdate = async function ({
-    filters = {},
-    update,
-    options = {},
-  }) {
+  const findOneAndUpdate = async function ({ filters = {}, update, options = {} }) {
     const mongo = this;
 
     logQuery({
       logger: fastify.log,
-      collection: "sessions",
-      operation: "findOneAndUpdate",
+      collection: 'sessions',
+      operation: 'findOneAndUpdate',
       filter: filters,
-      context: "Find One And Update Session",
+      context: 'Find One And Update Session',
     });
 
-    const result = await mongo.sessions.findOneAndUpdate(
-      filters,
-      update,
-      options,
-    );
+    const result = await mongo.sessions.findOneAndUpdate(filters, update, options);
 
     return result;
   };

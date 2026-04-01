@@ -1,4 +1,4 @@
-import { getFastify } from "./app.js";
+import { getFastify } from './app.js';
 
 getFastify().then((app) => {
   const { PORT, HOST } = app.config;

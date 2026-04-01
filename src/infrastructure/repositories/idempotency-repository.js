@@ -1,4 +1,4 @@
-import { logQuery } from "../../shared/utils/helpers.js";
+import { logQuery } from '../../shared/utils/helpers.js';
 
 const IdempotencyRepository = function (fastify) {
   const insertOne = async function ({ data }) {
@@ -6,10 +6,10 @@ const IdempotencyRepository = function (fastify) {
 
     logQuery({
       logger: fastify.log,
-      collection: "idempotency",
-      operation: "insertOne",
+      collection: 'idempotency',
+      operation: 'insertOne',
       filter: data,
-      context: "Create Idempotency Record",
+      context: 'Create Idempotency Record',
     });
 
     await mongo.idempotency.insertOne(data);
@@ -22,10 +22,10 @@ const IdempotencyRepository = function (fastify) {
 
     logQuery({
       logger: fastify.log,
-      collection: "idempotency",
-      operation: "findOne",
+      collection: 'idempotency',
+      operation: 'findOne',
       filter: filters,
-      context: "Find Idempotency Record",
+      context: 'Find Idempotency Record',
     });
 
     return mongo.idempotency.findOne(filters);

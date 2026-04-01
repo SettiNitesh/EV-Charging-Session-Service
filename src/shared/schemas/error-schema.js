@@ -1,17 +1,17 @@
 export const commonErrorSchema = {
-  type: "object",
+  type: 'object',
   properties: {
     errors: {
-      type: "array",
+      type: 'array',
       items: {
-        type: "object",
+        type: 'object',
         properties: {
-          name: { type: "string", nullable: true },
-          httpCode: { type: "number", default: 500 },
-          message: { type: "string" },
-          property: { type: "string" },
-          httpStatusCode: { type: "string" },
-          description: { type: "string", nullable: true },
+          name: { type: 'string', nullable: true },
+          httpCode: { type: 'number', default: 500 },
+          message: { type: 'string' },
+          property: { type: 'string' },
+          httpStatusCode: { type: 'string' },
+          description: { type: 'string', nullable: true },
         },
       },
     },

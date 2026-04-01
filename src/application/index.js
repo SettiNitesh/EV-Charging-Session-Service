@@ -1,3 +1,3 @@
-import usecases from "./usecases/index.js";
+import usecases from './usecases/index.js';
 
 export default { usecases };

@@ -1,3 +1,3 @@
-import sessionControllers from "./session/index.js";
+import sessionControllers from './session/index.js';
 
 export default { sessionControllers };

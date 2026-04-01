@@ -1,6 +1,8 @@
+import { DEFAULT_TARIFF } from '../constants/constants.js';
+
 const TraiffService = () => {
   const calculate = ({ energy, duration }) => {
-    const tariff = { energyRate: 10, timeRate: 2 };
+    const tariff = { ...DEFAULT_TARIFF };
 
     const energyCost = energy * tariff.energyRate;
     const timeCost = duration * tariff.timeRate;

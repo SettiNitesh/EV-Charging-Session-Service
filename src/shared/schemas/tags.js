@@ -1,3 +1,3 @@
-const TAGS = { SESSION: "SESSION" };
+const TAGS = { SESSION: 'SESSION' };
 
 export { TAGS };

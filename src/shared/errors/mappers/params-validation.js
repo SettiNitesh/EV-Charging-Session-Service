@@ -1,6 +1,6 @@
-import { REQUEST_VALIDATION_ERROR } from "../constants.js";
-import CustomError from "../custom-error.js";
-import { getPropertyPath } from "../helper.js";
+import { REQUEST_VALIDATION_ERROR } from '../constants.js';
+import CustomError from '../custom-error.js';
+import { getPropertyPath } from '../helper.js';
 
 const DEFAULT_OPTIONS = { showAllowedValues: true };
 
@@ -17,7 +17,7 @@ const paramsValidation = (error, options = DEFAULT_OPTIONS) => {
       }
 
       if (options.showAllowedValues && val.params && val.params.allowedValues) {
-        message += ` are ${val.params.allowedValues.join(",")}`;
+        message += ` are ${val.params.allowedValues.join(',')}`;
       }
 
       return { property, message, code: REQUEST_VALIDATION_ERROR };

@@ -1,5 +1,5 @@
-import { StatusCodes } from "http-status-codes";
-import { stopSessionUsecase } from "../../../application/usecases/session/index.js";
+import { StatusCodes } from 'http-status-codes';
+import { stopSessionUsecase } from '../../../application/usecases/session/index.js';
 
 const postStopSessionController = (fastify) => {
   return async (request, reply) => {

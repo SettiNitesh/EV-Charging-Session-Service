@@ -8,8 +8,9 @@
       "type": "node",
       "request": "launch",
       "name": "Launch Program",
-      "skipFiles": ["<node_internals>/**"],
-      "program": "${workspaceFolder}/src/application/usecases/session/updateSession.js"
+      "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
+      "program": "${workspaceFolder}/src/server.js",
+      "outFiles": ["${workspaceFolder}/**/*.js"]
     }
   ]
 }

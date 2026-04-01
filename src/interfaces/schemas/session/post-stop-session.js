@@ -1,22 +1,22 @@
-import { errorSchemas } from "../../../shared/schemas/error-schema.js";
-import { TAGS } from "../../../shared/schemas/index.js";
-import { sessionRouteHeaders } from "../../../shared/schemas/request-headers.js";
+import { errorSchemas } from '../../../shared/schemas/error-schema.js';
+import { TAGS } from '../../../shared/schemas/index.js';
+import { sessionRouteHeaders } from '../../../shared/schemas/request-headers.js';
 
 const tariffRatesSchema = {
-  type: "object",
+  type: 'object',
   properties: {
-    energyRate: { type: "number" },
-    timeRate: { type: "number" },
+    energyRate: { type: 'number' },
+    timeRate: { type: 'number' },
   },
   additionalProperties: true,
 };
 
 const tariffBreakdownSchema = {
-  type: "object",
+  type: 'object',
   properties: {
-    energyCost: { type: "number" },
-    timeCost: { type: "number" },
-    totalCost: { type: "number" },
+    energyCost: { type: 'number' },
+    timeCost: { type: 'number' },
+    totalCost: { type: 'number' },
     tariff: tariffRatesSchema,
   },
   additionalProperties: true,
@@ -24,26 +24,26 @@ const tariffBreakdownSchema = {
 
 const postStopSessionSchema = {
   tags: [TAGS.SESSION],
-  summary: "Stop a charging session and produce a charge detail record (CDR)",
+  summary: 'Stop a charging session and produce a charge detail record (CDR)',
   headers: sessionRouteHeaders,
   params: {
-    type: "object",
+    type: 'object',
     properties: {
-      id: { type: "string", format: "uuid" },
+      id: { type: 'string', format: 'uuid' },
     },
-    required: ["id"],
+    required: ['id'],
     additionalProperties: false,
   },
   response: {
     201: {
-      type: "object",
+      type: 'object',
       properties: {
-        sessionId: { type: "string", format: "uuid" },
-        totalEnergy: { type: "number" },
-        totalDuration: { type: "number" },
-        totalCost: { type: "number" },
+        sessionId: { type: 'string', format: 'uuid' },
+        totalEnergy: { type: 'number' },
+        totalDuration: { type: 'number' },
+        totalCost: { type: 'number' },
         tariff: tariffBreakdownSchema,
-        stoppedAt: { type: "string", format: "date-time" },
+        stoppedAt: { type: 'string', format: 'date-time' },
       },
       additionalProperties: true,
     },

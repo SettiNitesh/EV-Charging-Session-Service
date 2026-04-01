@@ -1,10 +1,10 @@
-import fastifyPlugin from "fastify-plugin";
+import fastifyPlugin from 'fastify-plugin';
 
 const idempotencyPlugin = (fastify) => {
-  fastify.decorateRequest("idempotencyKey", null);
+  fastify.decorateRequest('idempotencyKey', null);
 
-  fastify.addHook("preHandler", async (request) => {
-    request.idempotencyKey = request.headers["idempotency-key"];
+  fastify.addHook('preHandler', async (request) => {
+    request.idempotencyKey = request.headers['idempotency-key'];
   });
 };
 

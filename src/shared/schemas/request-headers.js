@@ -1,7 +1,7 @@
 export const sessionRouteHeaders = {
-  type: "object",
+  type: 'object',
   properties: {
-    "idempotency-key": { type: "string" },
+    'idempotency-key': { type: 'string' },
   },
   additionalProperties: true,
 };

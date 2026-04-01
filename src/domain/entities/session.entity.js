@@ -1,4 +1,4 @@
-import { SESSION_STATUS } from "../constants/constants.js";
+import { SESSION_STATUS } from '../constants/constants.js';
 
 export const sessionEntity = ({ id, userId, stationId }) => ({
   sessionId: id,

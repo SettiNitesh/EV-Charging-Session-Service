@@ -1,6 +1,6 @@
-import CustomError from "../custom-error.js";
+import CustomError from '../custom-error.js';
 
-import { ERROR_CODES } from "./error-codes.js";
+import { ERROR_CODES } from './error-codes.js';
 
 export const SessionNotActiveError = () =>
   CustomError.create({

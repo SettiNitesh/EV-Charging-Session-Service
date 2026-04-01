@@ -1,3 +1,3 @@
-import sessionUsecase from "./session/index.js";
+import sessionUsecase from './session/index.js';
 
 export default { sessionUsecase };

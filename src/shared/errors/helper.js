@@ -1,4 +1,4 @@
-import util from "util";
+import util from 'util';
 
 import {
   NO_BODY_FOUND,
@@ -9,10 +9,10 @@ import {
   NO_METHOD_FOUND,
   NO_STACK_FOUND,
   NO_URL_FOUND,
-} from "./constants.js";
+} from './constants.js';
 
 export const formatDetail = (detail) => {
-  if (typeof detail === "string" || detail instanceof String) {
+  if (typeof detail === 'string' || detail instanceof String) {
     return detail;
   }
   return util.inspect(detail);
@@ -39,15 +39,13 @@ export const getError = (error) => {
 };
 
 export const getPropertyPath = (val) => {
-  let path = "";
-
-  path =
+  const path =
     val.params.missingProperty ||
     val.params.additionalProperty ||
     val.params.propertyName ||
     val.instancePath ||
     val.dataPath ||
-    "empty_property_key";
+    'empty_property_key';
 
-  return path.replace(".", "").replace("/", "");
+  return path.replace('.', '').replace('/', '');
 };

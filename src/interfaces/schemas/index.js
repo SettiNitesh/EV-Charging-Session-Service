@@ -1,3 +1,3 @@
-import sessionSchemas from "./session/index.js";
+import sessionSchemas from './session/index.js';
 
 export default { sessionSchemas };

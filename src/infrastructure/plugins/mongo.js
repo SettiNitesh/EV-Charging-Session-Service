@@ -18,7 +18,7 @@ const mongoPlugin = async (fastify) => {
   const uri = fastify.config.DATABASE_URL;
 
   const client = new MongoClient(uri, {
-    serverSelectionTimeoutMS: 10_000,
+    serverSelectionTimeoutMS: 5_000,
     ...(shouldUseDirectConnection(uri, fastify.config) && {
       directConnection: true,
     }),

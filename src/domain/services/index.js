@@ -1,3 +1,3 @@
-import TraiffService from './tariffService.js';
+import TariffService from './tariffService.js';
 
-export default { TraiffService };
+export default { TariffService };

@@ -69,7 +69,12 @@
       "name": "STOP SESSION",
       "request": {
         "method": "POST",
-        "header": [],
+        "header": [
+          {
+            "key": "Idempotency-Key",
+            "value": "stop-1"
+          }
+        ],
         "url": {
           "raw": "{{service-url}}/api/v1/session/{{session_id}}/stop",
           "host": ["{{service-url}}"],

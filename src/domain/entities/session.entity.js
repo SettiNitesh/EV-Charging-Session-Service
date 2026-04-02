@@ -4,7 +4,7 @@ export const sessionEntity = ({ id, userId, stationId }) => ({
   sessionId: id,
   userId,
   stationId,
-  status: SESSION_STATUS.ACTIVE,
+  status: SESSION_STATUS.CREATED,
   energyLogs: [],
   createdAt: new Date(),
   stoppedAt: null,

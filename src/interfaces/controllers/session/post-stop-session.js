@@ -9,6 +9,7 @@ const postStopSessionController = (fastify) => {
 
     const response = await stopSession({
       sessionId: params.id,
+      idempotencyKey: request.headers['idempotency-key'],
     });
 
     return reply.code(StatusCodes.CREATED).send(response);

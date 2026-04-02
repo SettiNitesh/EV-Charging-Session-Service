@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { SESSION_STATUS } from '../../../domain/constants/constants.js';
 import { sessionEntity } from '../../../domain/entities/session.entity.js';
 import {
   IdempotencyRepository,
@@ -14,7 +15,7 @@ const saveIdempotencyRecord = ({ insertOne, mongo, idempotencyKey, type, respons
   });
 
 const startSessionUsecase = (fastify) => {
-  const { insertOne: insertSession } = SessionRepository(fastify);
+  const { insertOne: insertSession, updateOne: updateSession } = SessionRepository(fastify);
   const { insertOne: saveIdempotency, findOne: findIdempotency } = IdempotencyRepository(fastify);
 
   return async ({ data, idempotencyKey }) => {
@@ -24,11 +25,12 @@ const startSessionUsecase = (fastify) => {
         findOne: findIdempotency,
         mongo: fastify.mongo,
         idempotencyKey,
+        type: 'START',
       });
       if (existing?.response) return existing.response;
     }
 
-    // 2. Create and persist the new session
+    // 2. Create as CREATED, then move to ACTIVE (lifecycle: CREATED → ACTIVE)
     const session = sessionEntity({
       id: randomUUID(),
       userId: data.userId,
@@ -36,6 +38,13 @@ const startSessionUsecase = (fastify) => {
     });
 
     await insertSession.call(fastify.mongo, { data: session });
+
+    await updateSession.call(fastify.mongo, {
+      filters: { sessionId: session.sessionId },
+      update: { $set: { status: SESSION_STATUS.ACTIVE } },
+    });
+
+    const activeSession = { ...session, status: SESSION_STATUS.ACTIVE };
 
     // 3. Persist idempotency record (safe — handles duplicate key race condition)
     if (idempotencyKey) {
@@ -45,7 +54,7 @@ const startSessionUsecase = (fastify) => {
           mongo: fastify.mongo,
           idempotencyKey,
           type: 'START',
-          response: session,
+          response: activeSession,
         });
       } catch (error) {
         if (error.code === 11000) {
@@ -61,7 +70,7 @@ const startSessionUsecase = (fastify) => {
       }
     }
 
-    return session;
+    return activeSession;
   };
 };
 

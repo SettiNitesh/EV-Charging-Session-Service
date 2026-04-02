@@ -7,7 +7,7 @@ A **Node.js** REST API for managing **electric-vehicle charging sessions**: star
 ## How the application works
 
 1. **Start session** (`POST /api/v1/session`)  
-   Creates a new session with a generated `sessionId`, links it to `userId` and `stationId`, sets status to **ACTIVE**, and initializes empty `energyLogs`. Optional header **`Idempotency-Key`** ensures duplicate starts return the same session (stored in an `idempotency` collection).
+   Creates a new session with a generated `sessionId`, links it to `userId` and `stationId`, persists **CREATED** then immediately **ACTIVE** (lifecycle `CREATED → ACTIVE`), and initializes empty `energyLogs`. Optional header **`Idempotency-Key`** ensures duplicate starts return the same session (stored in an `idempotency` collection, keyed by key + `START`).
 
 2. **Update session** (`PATCH /api/v1/session/:id`)  
    While the session is **ACTIVE**, clients append **energy** samples to `energyLogs` (value + timestamp). If the session is not active, the API responds with a domain error.
@@ -17,7 +17,7 @@ A **Node.js** REST API for managing **electric-vehicle charging sessions**: star
    - Computes totals: energy from summed logs, duration from `createdAt` to now.
    - **Tariff** (`DEFAULT_TARIFF` in domain constants): `energyCost = energy × energyRate`, `timeCost = duration(minutes) × timeRate`, `totalCost` = sum.
    - Persists the CDR and final **COMPLETED** status inside a **MongoDB transaction**.
-   - **`Idempotency-Key`** on stop returns the same CDR for retries.
+   - Optional **`Idempotency-Key`** on stop returns the same CDR for retries (key + `STOP` in `idempotency`).
 
 Supporting behavior:
 
@@ -28,7 +28,7 @@ Supporting behavior:
 
 ```mermaid
 flowchart LR
-  A[POST /session] --> B[ACTIVE session]
+  A[POST /session] --> B[CREATED then ACTIVE]
   B --> C[PATCH energy logs]
   C --> B
   B --> D[POST .../stop]

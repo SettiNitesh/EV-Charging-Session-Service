@@ -1,6 +1,6 @@
 import { DEFAULT_TARIFF } from '../constants/constants.js';
 
-const TraiffService = () => {
+const TariffService = () => {
   const calculate = ({ energy, duration }) => {
     const tariff = { ...DEFAULT_TARIFF };
 
@@ -15,4 +15,4 @@ const TraiffService = () => {
   return { calculate };
 };
 
-export default TraiffService;
+export default TariffService;

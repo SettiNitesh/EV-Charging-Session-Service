@@ -1,4 +1,4 @@
-# EV Charging Session Service — full stack for local / interview testing
+# EV Charging Session Service — full stack for local  testing
 #
 # Run:
 #   docker compose up --build
@@ -15,16 +15,16 @@ services:
   mongo:
     image: mongo:7
     restart: unless-stopped
-    command: ['mongod', '--replSet', 'rs0', '--bind_ip_all']
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
     ports:
-      - '27017:27017'
+      - "27017:27017"
     volumes:
       - mongo_data:/data/db
     healthcheck:
       test:
         [
-          'CMD-SHELL',
-          "mongosh --quiet --eval \"try { rs.status() } catch (e) { rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: 'mongo:27017' }] }) }\" && mongosh --quiet --eval \"rs.status().ok && rs.status().members[0].stateStr === 'PRIMARY'\" || exit 1",
+          "CMD-SHELL",
+          'mongosh --quiet --eval "try { rs.status() } catch (e) { rs.initiate({ _id: ''rs0'', members: [{ _id: 0, host: ''mongo:27017'' }] }) }" && mongosh --quiet --eval "rs.status().ok && rs.status().members[0].stateStr === ''PRIMARY''" || exit 1',
         ]
       interval: 5s
       timeout: 10s
@@ -37,11 +37,11 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     ports:
-      - '3000:3000'
+      - "3000:3000"
     environment:
       NODE_ENV: production
-      HOST: '0.0.0.0'
-      PORT: '3000'
+      HOST: "0.0.0.0"
+      PORT: "3000"
       DATABASE_URL: mongodb://mongo:27017/ev_charging
     depends_on:
       mongo:

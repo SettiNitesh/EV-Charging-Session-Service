@@ -32,14 +32,8 @@
         },
         "url": {
           "raw": "{{service-url}}/api/v1/session",
-          "host": [
-            "{{service-url}}"
-          ],
-          "path": [
-            "api",
-            "v1",
-            "session"
-          ]
+          "host": ["{{service-url}}"],
+          "path": ["api", "v1", "session"]
         }
       },
       "response": []
@@ -65,15 +59,8 @@
         },
         "url": {
           "raw": "{{service-url}}/api/v1/session/{{session_id}}",
-          "host": [
-            "{{service-url}}"
-          ],
-          "path": [
-            "api",
-            "v1",
-            "session",
-            "{{session_id}}"
-          ]
+          "host": ["{{service-url}}"],
+          "path": ["api", "v1", "session", "{{session_id}}"]
         }
       },
       "response": []
@@ -85,16 +72,8 @@
         "header": [],
         "url": {
           "raw": "{{service-url}}/api/v1/session/{{session_id}}/stop",
-          "host": [
-            "{{service-url}}"
-          ],
-          "path": [
-            "api",
-            "v1",
-            "session",
-            "{{session_id}}",
-            "stop"
-          ]
+          "host": ["{{service-url}}"],
+          "path": ["api", "v1", "session", "{{session_id}}", "stop"]
         }
       },
       "response": []

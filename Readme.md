@@ -12,18 +12,18 @@ A **Node.js** REST API for managing **electric-vehicle charging sessions**: star
 2. **Update session** (`PATCH /api/v1/session/:id`)  
    While the session is **ACTIVE**, clients append **energy** samples to `energyLogs` (value + timestamp). If the session is not active, the API responds with a domain error.
 
-3. **Stop session** (`POST /api/v1/session/:id/stop`)  
-   - Atomically finds an **ACTIVE** session (with no CDR yet) and marks it **STOPPED**.  
-   - Computes totals: energy from summed logs, duration from `createdAt` to now.  
-   - **Tariff** (`DEFAULT_TARIFF` in domain constants): `energyCost = energy × energyRate`, `timeCost = duration(minutes) × timeRate`, `totalCost` = sum.  
-   - Persists the CDR and final **COMPLETED** status inside a **MongoDB transaction**.  
+3. **Stop session** (`POST /api/v1/session/:id/stop`)
+   - Atomically finds an **ACTIVE** session (with no CDR yet) and marks it **STOPPED**.
+   - Computes totals: energy from summed logs, duration from `createdAt` to now.
+   - **Tariff** (`DEFAULT_TARIFF` in domain constants): `energyCost = energy × energyRate`, `timeCost = duration(minutes) × timeRate`, `totalCost` = sum.
+   - Persists the CDR and final **COMPLETED** status inside a **MongoDB transaction**.
    - **`Idempotency-Key`** on stop returns the same CDR for retries.
 
 Supporting behavior:
 
-- **Health**: `fastify-healthcheck` for liveness-style checks.  
-- **Logging**: Request/response hooks attach trace context; **Pino** is used for structured logs.  
-- **Errors**: Central Fastify error handler maps domain and validation errors to HTTP responses.  
+- **Health**: `fastify-healthcheck` for liveness-style checks.
+- **Logging**: Request/response hooks attach trace context; **Pino** is used for structured logs.
+- **Errors**: Central Fastify error handler maps domain and validation errors to HTTP responses.
 - **Swagger UI**: Served under **`/docs`** with OpenAPI metadata from `@fastify/swagger`.
 
 ```mermaid
@@ -41,40 +41,40 @@ flowchart LR
 
 The codebase follows a **layered, ports-and-adapters style** layout so HTTP and persistence can change without rewriting business rules:
 
-| Layer | Role |
-|--------|------|
-| **`interfaces/`** | Routes, controllers, and **JSON Schema** for Fastify (request/response validation via **AJV**). |
-| **`application/`** | **Use cases** orchestrate repositories and domain services; no direct HTTP types. |
-| **`domain/`** | **Entities** (session shape), **constants** (status, tariff), and **TariffService** (pure cost calculation). |
+| Layer                 | Role                                                                                                                                         |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`interfaces/`**     | Routes, controllers, and **JSON Schema** for Fastify (request/response validation via **AJV**).                                              |
+| **`application/`**    | **Use cases** orchestrate repositories and domain services; no direct HTTP types.                                                            |
+| **`domain/`**         | **Entities** (session shape), **constants** (status, tariff), and **TariffService** (pure cost calculation).                                 |
 | **`infrastructure/`** | **MongoDB** plugin (client, indexes, collections), **repositories**, **idempotency** plugin, **AJV** and **Swagger** plugins, logging hooks. |
-| **`shared/`** | Env schema, errors, logging helpers, cross-cutting utilities. |
+| **`shared/`**         | Env schema, errors, logging helpers, cross-cutting utilities.                                                                                |
 
 **Design choices:**
 
-- **Use-case functions** receive `fastify` (for config, mongo, log) and return async handlers—simple composition without a heavy DI framework.  
-- **Repositories** encapsulate MongoDB calls (`insertOne`, `findOne`, `findOneAndUpdate`, `updateOne`) and log queries for observability.  
-- **Idempotency** uses a unique index on `(idempotencyKey, type)` with duplicate-key handling for races on start/stop.  
-- **Validation**: Route-level JSON Schema + AJV (keywords, formats, custom error messages) keeps contracts explicit and aligns with OpenAPI generation.  
+- **Use-case functions** receive `fastify` (for config, mongo, log) and return async handlers—simple composition without a heavy DI framework.
+- **Repositories** encapsulate MongoDB calls (`insertOne`, `findOne`, `findOneAndUpdate`, `updateOne`) and log queries for observability.
+- **Idempotency** uses a unique index on `(idempotencyKey, type)` with duplicate-key handling for races on start/stop.
+- **Validation**: Route-level JSON Schema + AJV (keywords, formats, custom error messages) keeps contracts explicit and aligns with OpenAPI generation.
 - **Environment**: `@fastify/env` loads and validates `process.env` against a single schema (`shared/schemas/env-schema.js`).
 
 ---
 
 ## Main packages
 
-| Package | Purpose |
-|---------|---------|
-| **fastify** | HTTP server, plugins, lifecycle. |
-| **@fastify/env** | Typed config from environment variables. |
-| **@fastify/cors** | CORS (includes `idempotency-key` header). |
-| **@fastify/swagger** / **@fastify/swagger-ui** | OpenAPI spec and `/docs` UI. |
-| **fastify-healthcheck** | Health endpoint. |
-| **fastify-plugin** | Encapsulated plugins with proper encapsulation. |
-| **mongodb** | Official driver; sessions + idempotency collections, transactions on stop. |
-| **ajv**, **ajv-errors**, **ajv-formats**, **ajv-keywords** | Compile-time validation for route schemas. |
-| **pino** | Structured logging (used via Fastify logger). |
-| **http-status-codes** | Consistent status constants in controllers. |
-| **uuid** / **node:crypto** | Session IDs (`randomUUID`). |
-| **dotenv** | Load `.env` in development. |
+| Package                                                    | Purpose                                                                    |
+| ---------------------------------------------------------- | -------------------------------------------------------------------------- |
+| **fastify**                                                | HTTP server, plugins, lifecycle.                                           |
+| **@fastify/env**                                           | Typed config from environment variables.                                   |
+| **@fastify/cors**                                          | CORS (includes `idempotency-key` header).                                  |
+| **@fastify/swagger** / **@fastify/swagger-ui**             | OpenAPI spec and `/docs` UI.                                               |
+| **fastify-healthcheck**                                    | Health endpoint.                                                           |
+| **fastify-plugin**                                         | Encapsulated plugins with proper encapsulation.                            |
+| **mongodb**                                                | Official driver; sessions + idempotency collections, transactions on stop. |
+| **ajv**, **ajv-errors**, **ajv-formats**, **ajv-keywords** | Compile-time validation for route schemas.                                 |
+| **pino**                                                   | Structured logging (used via Fastify logger).                              |
+| **http-status-codes**                                      | Consistent status constants in controllers.                                |
+| **uuid** / **node:crypto**                                 | Session IDs (`randomUUID`).                                                |
+| **dotenv**                                                 | Load `.env` in development.                                                |
 
 **Development:** ESLint, Prettier, nodemon, pino-pretty (see `package.json` scripts).
 
@@ -84,20 +84,20 @@ The codebase follows a **layered, ports-and-adapters style** layout so HTTP and 
 
 Variables are validated at startup (`@fastify/env`). Common ones:
 
-| Variable | Description |
-|----------|-------------|
-| `PORT` | HTTP port (default `3000`). |
-| `HOST` | Bind address (default `0.0.0.0`). |
-| `NODE_ENV` | `development` \| `production` \| `local` (default `local`). |
-| `LOG_LEVEL` | `debug` \| `info` \| `warn` \| `error`. |
-| `DATABASE_URL` | MongoDB connection string (default local `mongodb://127.0.0.1:27017/ev_charging`). |
+| Variable                  | Description                                                                                                                      |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `PORT`                    | HTTP port (default `3000`).                                                                                                      |
+| `HOST`                    | Bind address (default `0.0.0.0`).                                                                                                |
+| `NODE_ENV`                | `development` \| `production` \| `local` (default `local`).                                                                      |
+| `LOG_LEVEL`               | `debug` \| `info` \| `warn` \| `error`.                                                                                          |
+| `DATABASE_URL`            | MongoDB connection string (default local `mongodb://127.0.0.1:27017/ev_charging`).                                               |
 | `MONGO_DIRECT_CONNECTION` | `true` / `false` — when unset, single-host localhost URIs use `directConnection` to avoid replica-set hostname issues in Docker. |
 
 ---
 
 ## Prerequisites
 
-- **Node.js** (ES modules; project uses `"type": "module"`).  
+- **Node.js** (ES modules; project uses `"type": "module"`).
 - **Docker** (recommended) or another **MongoDB** instance reachable at `DATABASE_URL`.
 
 Stopping a session uses **MongoDB multi-document transactions**, which require a **replica set** (even a single-node replica set is enough). If you run MongoDB in Docker without Compose, start it with `--replSet` and run `rs.initiate()` once (see below).
@@ -129,7 +129,7 @@ If you run the Node app on your machine (`npm run start` / `npm run start:dev`),
    In the shell:
 
    ```javascript
-   rs.initiate()
+   rs.initiate();
    ```
 
    Wait until the member becomes `PRIMARY` (`rs.status()`), then exit.
@@ -196,9 +196,9 @@ From the project root, build and start **both** the app and MongoDB:
 docker compose up --build
 ```
 
-- **API**: [http://localhost:3000/api/v1/…](http://localhost:3000/api/v1/)  
-- **OpenAPI UI**: [http://localhost:3000/docs](http://localhost:3000/docs)  
-- **Health**: [http://localhost:3000/health](http://localhost:3000/health)  
+- **API**: [http://localhost:3000/api/v1/…](http://localhost:3000/api/v1/)
+- **OpenAPI UI**: [http://localhost:3000/docs](http://localhost:3000/docs)
+- **Health**: [http://localhost:3000/health](http://localhost:3000/health)
 - **MongoDB** is also published on **localhost:27017** (optional tools: Compass, `mongosh`).
 
 The `mongo` service runs as replica set `rs0`; the Compose healthcheck initializes it on first start so **transactions** (session stop / CDR) work without manual `rs.initiate()`. The app uses `DATABASE_URL=mongodb://mongo:27017/ev_charging` inside the stack.
@@ -215,13 +215,13 @@ docker compose down
 
 Base path: **`/api/v1`**
 
-| Method | Path | Summary |
-|--------|------|---------|
-| `POST` | `/session` | Start a charging session. |
-| `PATCH` | `/session/:id` | Append energy reading for an active session. |
-| `POST` | `/session/:id/stop` | Stop session and return CDR (costs + totals). |
+| Method  | Path                | Summary                                       |
+| ------- | ------------------- | --------------------------------------------- |
+| `POST`  | `/session`          | Start a charging session.                     |
+| `PATCH` | `/session/:id`      | Append energy reading for an active session.  |
+| `POST`  | `/session/:id/stop` | Stop session and return CDR (costs + totals). |
 
-- **Interactive contract**: [http://localhost:3000/docs](http://localhost:3000/docs) (when the server is running).  
+- **Interactive contract**: [http://localhost:3000/docs](http://localhost:3000/docs) (when the server is running).
 - **Postman**: Import `postman/EV-CHARGING.postman_collection.json` for runnable examples.
 
 ---

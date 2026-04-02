@@ -16,12 +16,12 @@ We expose three main operations: **start** a charging session, **append energy r
 
 We model the assignment lifecycle **CREATED → ACTIVE → STOPPED → COMPLETED** in code and storage:
 
-| Stage | What we decided | Where it happens |
-| ----- | --------------- | ---------------- |
-| **CREATED** | Persist the session first so there is a durable row before any billing logic. | `session.entity.js` creates documents with `status: CREATED`. |
-| **ACTIVE** | Charging is only allowed in this state; the public “start session” response is **ACTIVE** so clients never depend on an intermediate state. | `startSession` use case **updates** the row to `ACTIVE` immediately after insert (`updateOne`). |
-| **STOPPED** | A short-lived state: we have decided to end charging and are about to finalize the CDR. Only one caller should “win” the transition from **ACTIVE**. | `stopSession` uses **`findOneAndUpdate`** with filter `ACTIVE` and `cdr: null` so the first successful stop takes the session. |
-| **COMPLETED** | Terminal state: **CDR is written** and the session must not be updated again. | Same use case runs a **MongoDB transaction** that sets `status: COMPLETED` and embeds `cdr`. |
+| Stage         | What we decided                                                                                                                                      | Where it happens                                                                                                               |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| **CREATED**   | Persist the session first so there is a durable row before any billing logic.                                                                        | `session.entity.js` creates documents with `status: CREATED`.                                                                  |
+| **ACTIVE**    | Charging is only allowed in this state; the public “start session” response is **ACTIVE** so clients never depend on an intermediate state.          | `startSession` use case **updates** the row to `ACTIVE` immediately after insert (`updateOne`).                                |
+| **STOPPED**   | A short-lived state: we have decided to end charging and are about to finalize the CDR. Only one caller should “win” the transition from **ACTIVE**. | `stopSession` uses **`findOneAndUpdate`** with filter `ACTIVE` and `cdr: null` so the first successful stop takes the session. |
+| **COMPLETED** | Terminal state: **CDR is written** and the session must not be updated again.                                                                        | Same use case runs a **MongoDB transaction** that sets `status: COMPLETED` and embeds `cdr`.                                   |
 
 **PATCH** only applies when the session is **ACTIVE** and has **no CDR**, so a completed session cannot be modified.
 

@@ -1,0 +1,51 @@
+# EV Charging Session Service — full stack for local / interview testing
+#
+# Run:
+#   docker compose up --build
+#
+# Then:
+#   API:     http://localhost:3000/api/v1/...
+#   OpenAPI: http://localhost:3000/docs
+#   Health:  http://localhost:3000/health
+#
+# MongoDB is also exposed on localhost:27017 for optional tooling (Compass, mongosh).
+# Mongo runs as replica set rs0 (required for transactions on session stop); healthcheck runs rs.initiate on first boot.
+
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    command: ['mongod', '--replSet', 'rs0', '--bind_ip_all']
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          "mongosh --quiet --eval \"try { rs.status() } catch (e) { rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: 'mongo:27017' }] }) }\" && mongosh --quiet --eval \"rs.status().ok && rs.status().members[0].stateStr === 'PRIMARY'\" || exit 1",
+        ]
+      interval: 5s
+      timeout: 10s
+      retries: 12
+      start_period: 30s
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    environment:
+      NODE_ENV: production
+      HOST: '0.0.0.0'
+      PORT: '3000'
+      DATABASE_URL: mongodb://mongo:27017/ev_charging
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+volumes:
+  mongo_data:

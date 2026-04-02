@@ -98,7 +98,56 @@ Variables are validated at startup (`@fastify/env`). Common ones:
 ## Prerequisites
 
 - **Node.js** (ES modules; project uses `"type": "module"`).  
-- **MongoDB** reachable at `DATABASE_URL`.
+- **Docker** (recommended) or another **MongoDB** instance reachable at `DATABASE_URL`.
+
+Stopping a session uses **MongoDB multi-document transactions**, which require a **replica set** (even a single-node replica set is enough). If you run MongoDB in Docker without Compose, start it with `--replSet` and run `rs.initiate()` once (see below).
+
+---
+
+## MongoDB locally with Docker (without Compose)
+
+If you run the Node app on your machine (`npm run start` / `npm run start:dev`), you still need MongoDB. The default `DATABASE_URL` is `mongodb://127.0.0.1:27017/ev_charging`.
+
+1. **Run MongoDB as a single-node replica set** (port `27017`):
+
+   ```bash
+   docker run -d \
+     --name ev_charging \
+     -p 27017:27017 \
+     mongo:6 \
+     --replSet rs0
+   ```
+
+   You can use `mongo:7` instead of `mongo:6` if you prefer; keep `--replSet rs0`.
+
+2. **Initialize the replica set** (once per new data directory):
+
+   ```bash
+   docker exec -it ev_charging mongosh
+   ```
+
+   In the shell:
+
+   ```javascript
+   rs.initiate()
+   ```
+
+   Wait until the member becomes `PRIMARY` (`rs.status()`), then exit.
+
+3. **Optional — inspect data** (database name matches the path in `DATABASE_URL`):
+
+   ```javascript
+   use ev_charging
+   show collections
+   db.sessions.find().pretty()
+   ```
+
+4. **Run the API** (from the project root):
+
+   ```bash
+   npm install
+   npm run start:dev
+   ```
 
 ---
 
@@ -106,7 +155,7 @@ Variables are validated at startup (`@fastify/env`). Common ones:
 
 ```bash
 npm install
-# Set DATABASE_URL and other vars, or rely on defaults
+# Ensure MongoDB is running (see above) and DATABASE_URL is correct
 npm run start
 ```
 
@@ -126,6 +175,8 @@ npm run build
 
 ## Docker
 
+### App image only (MongoDB already running on the host)
+
 ```bash
 docker build -t ev-charging-session-service .
 docker run --rm -p 3000:3000 \
@@ -133,7 +184,30 @@ docker run --rm -p 3000:3000 \
   ev-charging-session-service
 ```
 
-Adjust `DATABASE_URL` for your network. The image runs `node` with an increased HTTP header size limit (same as `npm start`).
+On Linux, `host.docker.internal` may be unavailable unless you add `--add-host=host.docker.internal:host-gateway`. Adjust `DATABASE_URL` if MongoDB runs elsewhere. Your MongoDB must be a **replica set** if you use the stop-session endpoint (see [MongoDB locally with Docker](#mongodb-locally-with-docker-without-compose)).
+
+The image runs `node` with an increased HTTP header size limit (same as `npm start`).
+
+### Docker Compose — API and MongoDB together
+
+From the project root, build and start **both** the app and MongoDB:
+
+```bash
+docker compose up --build
+```
+
+- **API**: [http://localhost:3000/api/v1/…](http://localhost:3000/api/v1/)  
+- **OpenAPI UI**: [http://localhost:3000/docs](http://localhost:3000/docs)  
+- **Health**: [http://localhost:3000/health](http://localhost:3000/health)  
+- **MongoDB** is also published on **localhost:27017** (optional tools: Compass, `mongosh`).
+
+The `mongo` service runs as replica set `rs0`; the Compose healthcheck initializes it on first start so **transactions** (session stop / CDR) work without manual `rs.initiate()`. The app uses `DATABASE_URL=mongodb://mongo:27017/ev_charging` inside the stack.
+
+Stop and remove containers (keep the named volume unless you add `-v`):
+
+```bash
+docker compose down
+```
 
 ---
 

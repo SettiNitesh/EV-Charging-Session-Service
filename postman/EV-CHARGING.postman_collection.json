@@ -32,8 +32,14 @@
         },
         "url": {
           "raw": "{{service-url}}/api/v1/session",
-          "host": ["{{service-url}}"],
-          "path": ["api", "v1", "session"]
+          "host": [
+            "{{service-url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "session"
+          ]
         }
       },
       "response": []
@@ -50,7 +56,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{}",
+          "raw": "{\n    \"energy\": 8\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -58,11 +64,16 @@
           }
         },
         "url": {
-          "raw": "http://localhost:4444/api/v1/session/{{session_id}}",
-          "protocol": "http",
-          "host": ["localhost"],
-          "port": "4444",
-          "path": ["api", "v1", "session", "{{session_id}}"]
+          "raw": "{{service-url}}/api/v1/session/{{session_id}}",
+          "host": [
+            "{{service-url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "session",
+            "{{session_id}}"
+          ]
         }
       },
       "response": []
@@ -73,9 +84,17 @@
         "method": "POST",
         "header": [],
         "url": {
-          "raw": "{{service-url}}}/api/v1/session/{{session_id}}/stop",
-          "host": ["{{service-url}}}"],
-          "path": ["api", "v1", "session", "{{session_id}}", "stop"]
+          "raw": "{{service-url}}/api/v1/session/{{session_id}}/stop",
+          "host": [
+            "{{service-url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "session",
+            "{{session_id}}",
+            "stop"
+          ]
         }
       },
       "response": []

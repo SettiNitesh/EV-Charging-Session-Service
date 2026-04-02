@@ -2,7 +2,7 @@ export const schema = {
   type: 'object',
   properties: {
     PORT: {
-      type: 'number',
+      type: 'integer',
       default: 3000,
     },
     HOST: {

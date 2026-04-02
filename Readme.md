@@ -4,6 +4,71 @@ A **Node.js** REST API for managing **electric-vehicle charging sessions**: star
 
 ---
 
+## Approach and design decisions
+
+This section explains **what problem we solve**, **which trade-offs we chose**, and **how that shows up in the running application**.
+
+### What we are building
+
+We expose three main operations: **start** a charging session, **append energy readings** while it runs, and **stop** it to produce a final **bill (CDR)**. The service must stay **consistent under retries and concurrent calls** (duplicate starts, duplicate stops, overlapping updates) without double-charging or corrupting session state.
+
+### Session lifecycle (what happens in the app)
+
+We model the assignment lifecycle **CREATED → ACTIVE → STOPPED → COMPLETED** in code and storage:
+
+| Stage | What we decided | Where it happens |
+| ----- | --------------- | ---------------- |
+| **CREATED** | Persist the session first so there is a durable row before any billing logic. | `session.entity.js` creates documents with `status: CREATED`. |
+| **ACTIVE** | Charging is only allowed in this state; the public “start session” response is **ACTIVE** so clients never depend on an intermediate state. | `startSession` use case **updates** the row to `ACTIVE` immediately after insert (`updateOne`). |
+| **STOPPED** | A short-lived state: we have decided to end charging and are about to finalize the CDR. Only one caller should “win” the transition from **ACTIVE**. | `stopSession` uses **`findOneAndUpdate`** with filter `ACTIVE` and `cdr: null` so the first successful stop takes the session. |
+| **COMPLETED** | Terminal state: **CDR is written** and the session must not be updated again. | Same use case runs a **MongoDB transaction** that sets `status: COMPLETED` and embeds `cdr`. |
+
+**PATCH** only applies when the session is **ACTIVE** and has **no CDR**, so a completed session cannot be modified.
+
+### Why MongoDB, atomic updates, and a transaction on stop
+
+- **Single document per session** keeps reads and updates simple; **`sessionId`** is unique-indexed.
+- **Concurrent energy updates** use **`findOneAndUpdate`** with **`$push`** so each reading is applied atomically without lost updates.
+- **Stop** needs “either we fully finalize billing or we don’t leave inconsistent totals.” We first **claim** the session with **`findOneAndUpdate` (ACTIVE → STOPPED)**, then compute the CDR and **`updateOne` inside `withTransaction`** to set **COMPLETED + CDR** together. That requires a **replica set** (documented below)—we accept that trade-off for clear atomicity of the final bill.
+
+### Idempotency (how retries are safe)
+
+**Problem:** HTTP clients retry on timeouts; without idempotency, a retry could create a **second session** or confuse **stop** results.
+
+**Approach:**
+
+- Optional header **`Idempotency-Key`** on **start** and **stop**.
+- We store **one record per key + operation type** (`START` or `STOP`) in an **`idempotency`** collection with a **unique index** on `(idempotencyKey, type)`.
+- **First request** runs the use case and saves the response payload.
+- **Retries** with the same key return the **stored response** without repeating side effects.
+- **Concurrent duplicate starts** with the same key: one insert wins; the other hits **duplicate key (11000)** and **re-reads** the stored response—so we don’t rely on a separate distributed lock.
+
+The header is **optional** so simple clients still work; production integrations should send it for start/stop.
+
+### Tariff and CDR (what we calculate and what we deferred)
+
+- **Implemented:** **Energy-based** cost (`kWh × rate`) and **time-based** cost (`minutes × rate`) using **`DEFAULT_TARIFF`** in domain constants. **`TariffService`** holds the formula so we can swap or extend pricing later without changing HTTP or MongoDB shapes.
+- **Intentionally simple:** One global tariff—not time-of-day, not per-station rules in this codebase. That keeps the assignment focused on **session lifecycle, consistency, and CDR shape** rather than a full pricing product.
+- **CDR** includes **totals** (energy, duration, cost) and a **tariff breakdown** returned to the client after stop.
+
+### “Multiple charging periods” in this project
+
+We interpret ongoing charging as **multiple energy samples over time**: each **PATCH** appends a reading to **`energyLogs`**. We do **not** model separate priced time windows (e.g. peak vs off-peak slices) in v1—that would be a follow-up on top of the same logs.
+
+### Layered architecture (how code is organized)
+
+We use **clean layering** so interviewers and future maintainers can see boundaries clearly:
+
+- **`interfaces/`** — HTTP only: routes, controllers, JSON Schema. No business rules.
+- **`application/`** — **Use cases** orchestrate repositories and call domain services; they encode **when** things happen (start → active, stop → CDR).
+- **`domain/`** — **Entities**, status constants, **`TariffService`** (pure calculation).
+- **`infrastructure/`** — MongoDB plugin, repositories, idempotency plugin, Swagger/AJV.
+- **`shared/`** — Env validation, errors, logging helpers.
+
+We **did not** introduce a heavy DI framework: use cases receive **`fastify`** and get repositories from factories—enough structure without ceremony.
+
+---
+
 ## How the application works
 
 1. **Start session** (`POST /api/v1/session`)  
@@ -38,6 +103,8 @@ flowchart LR
 ---
 
 ## Architecture and approach
+
+The **rationale** for lifecycle, MongoDB usage, idempotency, and tariff scope is covered in [Approach and design decisions](#approach-and-design-decisions) above. Here is the **layer map** in one place.
 
 The codebase follows a **layered, ports-and-adapters style** layout so HTTP and persistence can change without rewriting business rules:
 

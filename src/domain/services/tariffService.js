@@ -9,7 +9,12 @@ const TariffService = () => {
 
     const totalCost = energyCost + timeCost;
 
-    return { energyCost, timeCost, totalCost, tariff };
+    return {
+      energyCost: parseFloat(energyCost.toFixed(3)),
+      timeCost: parseFloat(timeCost.toFixed(3)),
+      totalCost: parseFloat(totalCost.toFixed(3)),
+      tariff,
+    };
   };
 
   return { calculate };

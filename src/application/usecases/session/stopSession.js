@@ -6,18 +6,18 @@ import {
 } from '../../../infrastructure/repositories/index.js';
 import { InvalidStopRequestError } from '../../../shared/errors/domain/errors.js';
 
-const computeCdr = ({ session, calculate }) => {
+const computeCdr = ({ session, calculate, stoppedAt }) => {
   const totalEnergy = session.energyLogs.reduce((sum, e) => sum + e.value, 0);
-  const totalDuration = (Date.now() - new Date(session.createdAt)) / 60000;
+  const totalDuration = (stoppedAt - new Date(session.createdAt)) / 60000;
   const tariff = calculate({ energy: totalEnergy, duration: totalDuration });
 
   return {
     sessionId: session.sessionId,
     totalEnergy,
-    totalDuration,
-    totalCost: tariff.totalCost,
+    totalDuration: parseFloat(totalDuration.toFixed(3)),
+    totalCost: parseFloat(tariff.totalCost.toFixed(3)),
     tariff,
-    stoppedAt: new Date(),
+    stoppedAt,
   };
 };
 
@@ -46,11 +46,13 @@ const stopSessionUsecase = (fastify) => {
       if (existing?.response) return existing.response;
     }
 
+    const stoppedAt = new Date();
+
     // 2. Atomically mark session as stopped (outside transaction)
     const session = await findOneAndUpdate.call(fastify.mongo, {
       filters: { sessionId, status: SESSION_STATUS.ACTIVE, cdr: null },
       update: {
-        $set: { status: SESSION_STATUS.STOPPED, stoppedAt: new Date() },
+        $set: { status: SESSION_STATUS.STOPPED, stoppedAt },
       },
       options: { returnDocument: 'before' },
     });
@@ -71,7 +73,7 @@ const stopSessionUsecase = (fastify) => {
       let cdr;
 
       await mongoSession.withTransaction(async () => {
-        cdr = computeCdr({ session, calculate });
+        cdr = computeCdr({ session, calculate, stoppedAt });
 
         await updateOne.call(fastify.mongo, {
           filters: { sessionId },

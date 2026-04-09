@@ -39,6 +39,7 @@ const SessionRepository = function (fastify) {
       collection: 'sessions',
       operation: 'updateOne',
       filter: filters,
+      update: update,
       context: 'Update Session',
     });
 
@@ -55,6 +56,7 @@ const SessionRepository = function (fastify) {
       collection: 'sessions',
       operation: 'findOneAndUpdate',
       filter: filters,
+      update: update,
       context: 'Find One And Update Session',
     });
 
